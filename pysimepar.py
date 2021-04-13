@@ -50,7 +50,7 @@ class PySimepar:
         current_conditions = s.find(class_='container cc')
         current_temp = self.digit_re.findall(current_conditions.find(class_='currentTemp').text)[0]
 
-        # sensação termica, vento, rajada, precipitação
+        # sensacao termica, vento, rajada, precipitacao
         other_current_conditions = s.find(class_='info-gradient collapse in acci').find_all('span')
         current_fell_like = self.digit_re.findall(other_current_conditions[1].text.strip())[0]
         current_precipitation = self.digit_re.findall(other_current_conditions[3].text.strip())[0]
@@ -153,8 +153,5 @@ if __name__ == '__main__':
         print(i)
 
     print("daily forecast")
-    for i in sm.data['current'].keys():
-        print('{}: {}'.format(i, sm.data['current'][i]))
-
     for day in sm.data['daily']:
         print(day)
