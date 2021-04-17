@@ -17,6 +17,7 @@ class PySimepar:
         self.forecast_temp_re = re.compile(r'.*data:\s\[([\d|,]*)\].*')
         self.digit_re = re.compile(r'[\d|.]+')
         self.direction_re = re.compile(r'[N|S|L|O|E]+')
+        self.tz_fix = 10800
 
         self.data = { 'current': None, 'hourly': None, 'daily': None }
 
@@ -25,24 +26,28 @@ class PySimepar:
     def update(self):
 
         self.data = { 'current': None, 'hourly': None, 'daily': None }
+
+        try:        
+            r = requests.get(self.forecast_url)
+            r.encondig="utf-8"
+            s = BeautifulSoup(r.text, 'html.parser')
+            ji = self.json_re.search(r.text)
+            j = json.loads(ji.groups()[0]) 
+            forecast_list = []
+            #for i in sorted(j.keys()):
+            for i in j.keys():
+                forecast_list.append(j[i])
+
+            forecast_temp_list = self.forecast_temp_re.findall(r.text)
+
+            self.get_current_conditions(s)
+            self.get_hourly_forecast(s)
+            self.get_daily_forecast(s, forecast_list, forecast_temp_list)
+
+            self.s = s
         
-        r = requests.get(self.forecast_url)
-        r.encondig="utf-8"
-        s = BeautifulSoup(r.text, 'html.parser')
-        ji = self.json_re.search(r.text)
-        j = json.loads(ji.groups()[0]) 
-        forecast_list = []
-        #for i in sorted(j.keys()):
-        for i in j.keys():
-            forecast_list.append(j[i])
-
-        forecast_temp_list = self.forecast_temp_re.findall(r.text)
-
-        self.get_current_conditions(s)
-        self.get_hourly_forecast(s)
-        self.get_daily_forecast(s, forecast_list, forecast_temp_list)
-
-        self.s = s
+        except:
+            print('Error while trying to fetch forecast')
 
     def get_current_conditions(self, s):
 
@@ -72,28 +77,20 @@ class PySimepar:
         hourly_info = [ ]
 
         today = s.find(class_='table-hourly tab-pane active')
-        today_timestamp = int(self.digit_re.findall(today.attrs['id'])[0]) + 10800
-
-        print(today_timestamp)
+        today_timestamp = int(self.digit_re.findall(today.attrs['id'])[0]) + self.tz_fix
 
         # today hourly
         for hour in today.find_all(class_='ah-header'):
             hourly_info.append(hour)
 
         tomorrow = s.find(class_='table-hourly tab-pane')
-        #tomorrow_timestamp = self.digit_re.findall(tomorrow.attrs['id'])[0] + 10800
 
-        #print(tomorrow_timestamp)
-
-        
-        # tomorrow hourly
         for hour in tomorrow.find_all(class_='ah-header'):
             hourly_info.append(hour)
 
         timestamp = today_timestamp + int(self.digit_re.findall(hourly_info[0].find(class_='ah-time').text)[0]) * 3600
 
         for i in hourly_info:
-            #time = i.find(class_='ah-time').text
             tmp = i.find(class_='ah-temp')
             temperature = self.digit_re.findall(tmp.text.strip())[0]
             icon = i.find('i').attrs['class'][1]
