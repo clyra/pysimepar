@@ -14,7 +14,7 @@ class PySimepar:
         self.json_re = re.compile(r'.*json.*(\{.*a\>\"\}).*')
         self.forecast_icon_re = re.compile(r'.*wi\s(wi[\w|-]*)\s.*')
         self.forecast_cond_re = re.compile(r'.*title="([\w|\s]*)".*')
-        self.forecast_temp_re = re.compile(r'.*data:\s\[([\d|,]*)\].*')
+        self.forecast_temp_re = re.compile(r'.*data:\s\[([\d,-]*)\].*')
         self.digit_re = re.compile(r'[\d|.]+')
         self.direction_re = re.compile(r'[N|S|L|O|E]+')
         self.tz_fix = 10800
