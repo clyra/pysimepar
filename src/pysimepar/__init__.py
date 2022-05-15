@@ -79,28 +79,44 @@ class PySimepar:
         today = s.find(class_='table-hourly tab-pane active')
         today_timestamp = int(self.digit_re.findall(today.attrs['id'])[0]) + self.tz_fix
 
-        # today hourly
+        hourly_extra = today.find_all(class_='collapse ah-body')
+        index = 0 
         for hour in today.find_all(class_='ah-header'):
-            hourly_info.append(hour)
+            hourly_info.append([ hour, hourly_extra[index]])
+            index += 1
 
         tomorrow = s.find(class_='table-hourly tab-pane')
-
+        hourly_extra = tomorrow.find_all(class_='collapse ah-body')
+        index = 0
         for hour in tomorrow.find_all(class_='ah-header'):
-            hourly_info.append(hour)
+            hourly_info.append([ hour, hourly_extra[index]])
+            index += 1
 
-        timestamp = today_timestamp + int(self.digit_re.findall(hourly_info[0].find(class_='ah-time').text)[0]) * 3600
-
+        timestamp = today_timestamp + int(self.digit_re.findall(hourly_info[0][0].find(class_='ah-time').text)[0]) * 3600
+        
         for i in hourly_info:
-            tmp = i.find(class_='ah-temp')
+            tmp = i[0].find(class_='ah-temp')
             temperature = self.digit_re.findall(tmp.text.strip())[0]
-            icon = i.find('i').attrs['class'][1]
-            condition = i.find('i').attrs['title'].strip()
-            precipitation = self.digit_re.findall(i.find(class_='ah-prec').text)[0]
-            wind = i.find(class_='ah-wind').text
+            icon = i[0].find('i').attrs['class'][1]
+            condition = i[0].find('i').attrs['title'].strip()
+            precipitation = self.digit_re.findall(i[0].find(class_='ah-prec').text)[0]
+            wind = i[0].find(class_='ah-wind').text
             wind_bearing = self.direction_re.findall(wind)[0]
-            wind_speed = self.digit_re.findall(wind)[0]
+            wind_speed = self.digit_re.findall(wind)[0]  
+            extra_val = i[1].find_all(class_="val")
+            feels_like = self.digit_re.findall(extra_val[0].text.strip())[0]
+            humidity = self.digit_re.findall(extra_val[1].text.strip())[0]
+            chance_rain = self.digit_re.findall(extra_val[2].text.strip())[0]
+            wind_gust = self.digit_re.findall(extra_val[3].text.strip())[0]
+            pressure = self.digit_re.findall(extra_val[4].text.strip())[0]
+            uv_index = (self.digit_re.findall(extra_val[5].text.strip()) or [None])[0]
+            visibility = self.digit_re.findall(extra_val[6].text.strip())[0]
 
-            hourly_forecast.append( { 'timestamp': timestamp, 'temperature': temperature, 'icon': icon, 'condition': condition, 'precipitation': precipitation, 'wind_bearing': wind_bearing, 'wind_speed': wind_speed})    
+            hourly_forecast.append( { 'timestamp': timestamp, 'temperature': temperature, 'icon': icon, 
+                                      'condition': condition, 'precipitation': precipitation, 'wind_bearing': wind_bearing, 
+                                      'wind_speed': wind_speed, 'feels_like': feels_like, 'humidity': humidity, 
+                                      'chance_of_rain': chance_rain, 'wind_gust': wind_gust, 'pressure': pressure,
+                                      'uv_index': uv_index, 'visibility': visibility})    
             #print('{} {} {} {} {} {} {}'.format(time, temperature, icon, condition, precipitation, wind_bearing, wind_speed))
 
             timestamp += 3600
@@ -133,7 +149,9 @@ class PySimepar:
             min_temp = forecast_temp_list[1].split(",")[x]
             x += 1
 
-            daily_forecast.append( { 'timestamp': timestamp, 'condition': condition, 'icon': icon, 'max_temp': max_temp, 'min_temp': min_temp, 'precipitation': precipitation, 'chance_of_rain': chance_rain, 'wind_bearing': wind_bearing, 'wind_speed': wind_speed } )
+            daily_forecast.append( { 'timestamp': timestamp, 'condition': condition, 'icon': icon, 'max_temp': max_temp, 
+                                     'min_temp': min_temp, 'precipitation': precipitation, 'chance_of_rain': chance_rain, 
+                                     'wind_bearing': wind_bearing, 'wind_speed': wind_speed } )
 
         self.data['daily'] = daily_forecast
 
