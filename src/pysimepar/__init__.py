@@ -110,7 +110,7 @@ class PySimepar:
             wind_gust = self.digit_re.findall(extra_val[3].text.strip())[0]
             pressure = self.digit_re.findall(extra_val[4].text.strip())[0]
             uv_index = (self.digit_re.findall(extra_val[5].text.strip()) or [None])[0]
-            visibility = self.digit_re.findall(extra_val[6].text.strip())[0]
+            visibility = (self.digit_re.findall(extra_val[6].text.strip()) or [None])[0]
 
             hourly_forecast.append( { 'timestamp': timestamp, 'temperature': temperature, 'icon': icon, 
                                       'condition': condition, 'precipitation': precipitation, 'wind_bearing': wind_bearing, 
