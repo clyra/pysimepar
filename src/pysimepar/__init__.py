@@ -9,7 +9,7 @@ class PySimepar:
     def __init__(self, city_code):
 
         self.city_code = city_code
-        self.forecast_url = "http://www.simepar.br/prognozweb/simepar/forecast_by_counties/" + str(self.city_code)
+        self.forecast_url = "https://www.simepar.br/simepar/forecast_by_counties/" + str(self.city_code)
 
         self.json_re = re.compile(r'.*json.*(\{.*a\>\"\}).*')
         self.forecast_icon_re = re.compile(r'.*wi\s(wi[\w|-]*)\s.*')
