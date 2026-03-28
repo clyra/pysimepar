@@ -10,7 +10,6 @@ class PySimepar:
 
         self.city_code = city_code
         self.forecast_url = "https://www.simepar.br/simepar/forecast_by_counties/" + str(self.city_code)
-
         self.json_re = re.compile(r'.*json.*(\{.*a\>\"\}).*')
         self.forecast_icon_re = re.compile(r'.*wi\s(wi[\w|-]*)\s.*')
         self.forecast_cond_re = re.compile(r'.*title="([\w|\s]*)".*')
@@ -18,6 +17,17 @@ class PySimepar:
         self.digit_re = re.compile(r'[\d|.]+')
         self.direction_re = re.compile(r'[N|S|L|O|E]+')
         self.tz_fix = 10800
+
+        self.headers = {
+                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,webp,side-by-side",
+        }
+
+        self.forecast_headers = {
+                "User-Agent": self.headers["User-Agent"],
+                "Referer": "https://www.simepar.br",
+                "X-Requested-With": "XMLHttpRequest",
+         }
 
         self.data = { 'current': None, 'hourly': None, 'daily': None }
 
@@ -27,8 +37,12 @@ class PySimepar:
 
         self.data = { 'current': None, 'hourly': None, 'daily': None }
 
-        try:        
-            r = requests.get(self.forecast_url)
+        try:
+            # cria uma sessão e pega os cookies:
+            session = requests.Session()
+            session.get("https://www.simepar.br", headers=self.headers)
+            # com os cookies, tenta pegar o forecast
+            r = session.get(self.forecast_url, headers=self.forecast_headers)
             r.encondig="utf-8"
             s = BeautifulSoup(r.text, 'html.parser')
             ji = self.json_re.search(r.text)
